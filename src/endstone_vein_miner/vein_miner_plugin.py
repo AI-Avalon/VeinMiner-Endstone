@@ -25,7 +25,7 @@ class VeinMinerPlugin(Plugin):
     
     commands = {
         "veinminer": {
-            "description": "Mine entire veins at once!",
+            "description": "鉱脈を一括破壊します！",
             "usages": ["/veinminer help", "/veinminer reload", "/veinminer stats", "/veinminer toggle"],
             "aliases": ["vm", "vmine"],
             "permissions": ["veinminer.command"]
@@ -34,27 +34,27 @@ class VeinMinerPlugin(Plugin):
     
     permissions = {
         "veinminer.use": {
-            "description": "Allows players to use vein mining",
+            "description": "プレイヤーが一括破壊を使用できるようにします",
             "default": True
         },
         "veinminer.chain": {
-            "description": "Allows players to use chain mining",
+            "description": "プレイヤーがチェーンマイニングを使用できるようにします",
             "default": True
         },
         "veinminer.command": {
-            "description": "Allows use of /veinminer command",
+            "description": "/veinminer コマンドの使用を許可します",
             "default": "op"
         },
         "veinminer.reload": {
-            "description": "Allows reloading the plugin configuration",
+            "description": "プラグイン設定の再読み込みを許可します",
             "default": "op"
         },
         "veinminer.stats": {
-            "description": "Allows viewing vein mining statistics",
+            "description": "一括破壊の統計情報の表示を許可します",
             "default": True
         },
         "veinminer.toggle": {
-            "description": "Allows toggling vein mining on/off",
+            "description": "一括破壊のオン/オフ切り替えを許可します",
             "default": True
         }
     }
@@ -1101,7 +1101,7 @@ class VeinMinerPlugin(Plugin):
             current_time = int(time.time() * 1000)
             last_error = self.last_error_message.get(player_id, 0)
             if current_time - last_error > 5000:
-                self.send_message(player, "error-occurred", error="Check console")
+                self.send_message(player, "error-occurred", error=self.get_message("check-console"))
                 self.last_error_message[player_id] = current_time
         finally:
             # Always remove processing flag

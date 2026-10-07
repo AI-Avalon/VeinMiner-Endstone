@@ -120,5 +120,6 @@
   "chain-mining-tip": "Chain Mining: {count} blocks",
   "mining-xp-tip": " (+{xp} XP)",
   "no-permission-chain": "You don't have permission to use chain mining.",
-  "command-status": "Status: {status}"
+  "command-status": "Status: {status}",
+  "check-console": "Check console"
 }

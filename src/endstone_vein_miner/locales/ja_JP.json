@@ -4,7 +4,7 @@
   "stats-line": "&e総一括破壊回数: &f{veins} &7| &e総破壊ブロック数: &f{blocks} &7| &e最大破壊数: &f{largest}",
   "toggle-enabled": "&a一括破壊が有効になりました！",
   "toggle-disabled": "&c一括破壊が無効になりました！",
-  "inventory-full": "&eインベントリがいっぱいです！ {count} 個のアイテムが {action} されました。",
+  "inventory-full": "&e持ち物がいっぱいです！ {count} 個のアイテムが {action} されました。",
   "vein-too-large": "&c一括破壊のサイズが {max} ブロックに制限されました！",
   "cooldown-active": "&c次の一括破壊までしばらくお待ちください！",
   "wrong-tool": "&cこのブロックを一括破壊するための適切なツールが必要です！",
@@ -16,7 +16,7 @@
   "no-permission-command": "&cこのコマンドを実行する権限がありません。",
   "only-player-command": "&cこのコマンドはプレイヤーのみが実行できます。",
   "no-permission-reload": "&c設定を再読み込みする権限がありません。",
-  "only-op-reload": "&cプラグイン全体の設定コマンドはOPのみ実行可能です。",
+  "only-op-reload": "&cプラグイン全体の設定コマンドは管理者 (オペレーター) のみ実行可能です。",
   "no-permission-stats": "&c統計を表示する権限がありません。",
   "no-permission-toggle": "&c一括破壊を切り替える権限がありません。",
   "already-enabled": "&eVeinMinerは既に有効になっています！",
@@ -35,7 +35,7 @@
   "status-enabled": "&a✓ 有効",
   "status-disabled": "&c✗ 無効",
   "status-version": "&eバージョン: &f{version}",
-  "status-tip-enabled": "&7ヒント: スニークしながら採掘すると発動します！",
+  "status-tip-enabled": "&7ヒント: スニーク (しゃがみ) しながら採掘すると発動します！",
   "status-tip-disabled": "&7/vm on で一括破壊を有効にしてください。",
   "unknown-subcommand": "&c不明なサブコマンドです: &7{subcommand}",
   "help-tip": "&eコマンドの一覧は &f/vm help&e で確認できます。",
@@ -52,7 +52,7 @@
   "help-chain-on": "&b/vm chain on &7- チェーンマイニングを有効化",
   "help-chain-off": "&b/vm chain off &7- チェーンマイニングを無効化",
   "help-chain-status": "&b/vm chain status &7- チェーンマイニングのステータスを確認",
-  "help-footer": "&7ヒント: スニーク(Shift)しながら採掘すると発動します！",
+  "help-footer": "&7ヒント: スニーク (しゃがみ) しながら採掘すると発動します！",
   "log-plugin-loaded": "VeinMiner プラグインが読み込まれました！",
   "log-caches-cleaned": "[キャッシュ] キャッシュをクリアしました（ツール検証 + クールダウン + エラーレート制限）",
   "log-daily-limits-reset": "[制限] 1日の上限をリセットしました",
@@ -120,5 +120,6 @@
   "chain-mining-tip": "チェーン採掘: {count} ブロック",
   "mining-xp-tip": " (+{xp} XP)",
   "no-permission-chain": "チェーン採掘を使用する権限がありません。",
-  "command-status": "状態: {status}"
+  "command-status": "状態: {status}",
+  "check-console": "コンソールを確認してください"
 }

@@ -1,5 +1,4 @@
 # VeinMiner Plugin for Endstone
-[日本語版ドキュメントはこちら (Japanese Documentation)](README.ja.md)
 A configurable vein-mining plugin for Endstone servers.
 
 Requires Endstone `v0.11.0` or newer.
@@ -176,3 +175,5 @@ Source files:
 ## License
 
 MIT
+
+* [日本語版ドキュメント](README.ja.md)
