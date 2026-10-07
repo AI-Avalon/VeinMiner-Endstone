@@ -97,7 +97,7 @@ class StatisticsTracker:
 
         if self.storage not in {"yaml", "mysql"}:
             self.plugin.logger.warning(
-                f"{self.LOG_TAG}Unknown statistics storage '{self.storage}', falling back to yaml."
+                f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-unknown-storage", storage=self.storage)
             )
             self.storage = "yaml"
 
@@ -130,7 +130,7 @@ class StatisticsTracker:
             return False
 
         if not isinstance(self.mysql_config, dict):
-            self.plugin.logger.error(f"{self.LOG_TAG}Invalid statistics.mysql configuration block.")
+            self.plugin.logger.error(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-mysql-invalid"))
             return False
 
         host = str(self.mysql_config.get("host", "127.0.0.1"))
@@ -181,7 +181,7 @@ class StatisticsTracker:
                 )
             return True
         except Exception as e:
-            self.plugin.logger.error(f"{self.LOG_TAG}Failed to initialize MySQL backend: {str(e)}")
+            self.plugin.logger.error(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-mysql-init-error", error=str(e)))
             self.close()
             return False
 
@@ -298,7 +298,7 @@ class StatisticsTracker:
                 if "milestones" in player_data:
                     self.achieved_milestones[uuid] = set(player_data["milestones"])
         except Exception as e:
-            self.plugin.logger.error(f"{self.LOG_TAG}Error loading milestones for {uuid}: {str(e)}")
+            self.plugin.logger.error(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-milestone-load-error", uuid=uuid, error=str(e)))
 
     def load_player_milestones_from_mysql(self, uuid: str) -> None:
         """Load milestones for a single player from MySQL."""
@@ -318,7 +318,7 @@ class StatisticsTracker:
             finally:
                 cursor.close()
         except Exception as e:
-            self.plugin.logger.error(f"{self.LOG_TAG}Error loading MySQL milestones for {uuid}: {str(e)}")
+            self.plugin.logger.error(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-milestone-mysql-load-error", uuid=uuid, error=str(e)))
             self.achieved_milestones[uuid] = set()
 
     def check_milestones(self, player, previous_blocks: int, current_blocks: int) -> None:
@@ -411,10 +411,10 @@ class StatisticsTracker:
                 yaml.safe_dump(data, f, default_flow_style=False, sort_keys=True)
 
             if self.plugin.logging_enabled and self.plugin.log_config_loading:
-                self.plugin.logger.info(f"{self.LOG_TAG}Statistics saved for {len(self.player_stats)} players")
+                self.plugin.logger.info(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-saved", count=len(self.player_stats)))
             self.needs_save = False
         except Exception as e:
-            self.plugin.logger.error(f"{self.LOG_TAG}Error saving YAML statistics: {str(e)}")
+            self.plugin.logger.error(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-yaml-save-error", error=str(e)))
 
     def save_stats_to_mysql(self) -> None:
         """Save statistics to MySQL backend."""
@@ -469,12 +469,10 @@ class StatisticsTracker:
                 cursor.close()
 
             if self.plugin.logging_enabled and self.plugin.log_config_loading:
-                self.plugin.logger.info(
-                    f"{self.LOG_TAG}MySQL statistics saved for {len(self.player_stats)} players"
-                )
+                self.plugin.logger.info(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-saved", count=len(self.player_stats)))
             self.needs_save = False
         except Exception as e:
-            self.plugin.logger.error(f"{self.LOG_TAG}Error saving MySQL statistics: {str(e)}")
+            self.plugin.logger.error(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-mysql-save-error", error=str(e)))
 
     def load_stats(self) -> None:
         """Load statistics from configured backend."""
@@ -516,9 +514,9 @@ class StatisticsTracker:
                     }
 
             if self.plugin.logging_enabled and self.plugin.log_config_loading:
-                self.plugin.logger.info(f"{self.LOG_TAG}Loaded statistics for {len(self.player_stats)} players")
+                self.plugin.logger.info(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-loaded", count=len(self.player_stats)))
         except Exception as e:
-            self.plugin.logger.error(f"{self.LOG_TAG}Error loading YAML statistics: {str(e)}")
+            self.plugin.logger.error(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-yaml-load-error", error=str(e)))
 
     def load_stats_from_mysql(self) -> None:
         """Load statistics from MySQL backend."""
@@ -557,7 +555,7 @@ class StatisticsTracker:
                     f"{self.LOG_TAG}Loaded MySQL statistics for {len(self.player_stats)} players"
                 )
         except Exception as e:
-            self.plugin.logger.error(f"{self.LOG_TAG}Error loading MySQL statistics: {str(e)}")
+            self.plugin.logger.error(f"{self.LOG_TAG}" + self.plugin.get_message("log-stats-mysql-load-error", error=str(e)))
 
     def close(self) -> None:
         """Close backend resources."""

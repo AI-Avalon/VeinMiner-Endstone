@@ -199,7 +199,7 @@ class VeinMinerPlugin(Plugin):
         
     def on_load(self) -> None:
         """Called when the plugin is loaded"""
-        self.logger.info("VeinMiner plugin loaded!")
+        self.logger.info(self.get_message("log-plugin-loaded"))
         
     def on_enable(self) -> None:
         """Called when the plugin is enabled"""
@@ -268,7 +268,7 @@ class VeinMinerPlugin(Plugin):
                 del self.last_cooldown_message[player_id]
             
             if cache_cleared and self.logging_enabled and self.log_config_loading:
-                self.logger.info("[Cache] Caches cleaned (tool validation + cooldowns + error rate limits)")
+                self.logger.info(self.get_message("log-caches-cleaned"))
         
         self.server.scheduler.run_task(self, cleanup_cache, delay=36000, period=36000)
         
@@ -278,12 +278,12 @@ class VeinMinerPlugin(Plugin):
                 self.daily_vein_count.clear()
                 self.daily_block_count.clear()
                 if self.logging_enabled:
-                    self.logger.info("[Limits] Daily limits reset")
+                    self.logger.info(self.get_message("log-daily-limits-reset"))
             
             self.server.scheduler.run_task(self, reset_daily_limits, delay=1728000, period=1728000)
         
         # Startup message
-        self.logger.info(f"Plugin enabled (v{self.version}) - Max blocks: {self.max_blocks}, Vein blocks: {len(self.vein_blocks)}")
+        self.logger.info(self.get_message("log-plugin-enabled", version=self.version, max_blocks=self.max_blocks, vein_blocks=len(self.vein_blocks)))
         
         # Check for updates
         if self.update_checker_enabled:
@@ -297,14 +297,14 @@ class VeinMinerPlugin(Plugin):
             time.sleep(0.1)
         
         if self.processing_vein:
-            self.logger.warning(f"Shutting down with {len(self.processing_vein)} active vein operations")
+            self.logger.warning(self.get_message("log-shutting-down-active", count=len(self.processing_vein)))
         
         # Save statistics synchronously
         if self.stats_tracker:
             self.stats_tracker.save_stats(async_save=False)
             self.stats_tracker.close()
         
-        self.logger.info(ColorFormat.RED + "VeinMiner plugin disabled!")
+        self.logger.info(ColorFormat.RED + self.get_message("log-plugin-disabled"))
     
     def on_command(self, sender, command, args):
         """Handle command execution"""
@@ -326,7 +326,7 @@ class VeinMinerPlugin(Plugin):
                 f"max-blocks is set to -1 (unlimited). Applying safety cap: {self.UNLIMITED_MAX_BLOCKS}"
             )
         elif self.max_blocks < 1 or self.max_blocks > self.UNLIMITED_MAX_BLOCKS:
-            self.logger.warning(f"Invalid max-blocks value ({self.max_blocks}), using default: {self.DEFAULT_MAX_BLOCKS}")
+            self.logger.warning(self.get_message("log-invalid-config", key="max-blocks", value=self.max_blocks, default=self.DEFAULT_MAX_BLOCKS))
             self.max_blocks = self.DEFAULT_MAX_BLOCKS
         
         # Load min vein size
@@ -342,14 +342,14 @@ class VeinMinerPlugin(Plugin):
         # Load batch size (for performance tuning)
         self.batch_size = config.get("batch-size", self.BATCH_SIZE)
         if self.batch_size < 1 or self.batch_size > 100:
-            self.logger.warning(f"Invalid batch-size value ({self.batch_size}), using default: {self.BATCH_SIZE}")
+            self.logger.warning(self.get_message("log-invalid-config", key="batch-size", value=self.batch_size, default=self.BATCH_SIZE))
             self.batch_size = self.BATCH_SIZE
             
         # Load auto-pickup settings
         self.auto_pickup_enabled = config.get("auto-pickup", {}).get("enabled", True)
         self.full_inventory_action = config.get("auto-pickup", {}).get("full-inventory-action", "drop").lower()
         if self.full_inventory_action not in ["drop", "delete"]:
-            self.logger.warning(f"Invalid full-inventory-action value ({self.full_inventory_action}), using default: drop")
+            self.logger.warning(self.get_message("log-invalid-config", key="full-inventory-action", value=self.full_inventory_action, default="drop"))
             self.full_inventory_action = "drop"
 
         # Load auto-smelt settings (support both dashed and underscored keys).
@@ -363,10 +363,10 @@ class VeinMinerPlugin(Plugin):
         try:
             self.auto_smelt_xp_multiplier = float(raw_auto_smelt_xp_multiplier)
         except (TypeError, ValueError):
-            self.logger.warning("Invalid auto-smelt xp-multiplier value, using default: 0.5")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="auto-smelt xp-multiplier", default="0.5"))
             self.auto_smelt_xp_multiplier = 0.5
         if self.auto_smelt_xp_multiplier < 0:
-            self.logger.warning("Invalid auto-smelt xp-multiplier value, using default: 0.5")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="auto-smelt xp-multiplier", default="0.5"))
             self.auto_smelt_xp_multiplier = 0.5
 
         auto_smelt_whitelist = auto_smelt_config.get(
@@ -379,12 +379,12 @@ class VeinMinerPlugin(Plugin):
                 if isinstance(entry, str) and entry.strip():
                     self.auto_smelt_whitelist.add(self.normalize_block_id(entry))
         elif auto_smelt_whitelist:
-            self.logger.warning("Invalid auto-smelt whitelist format, expected list of block ids")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="auto-smelt whitelist", default="list of block ids"))
         
         # Load durability multiplier
         self.durability_multiplier = config.get("tool-durability", {}).get("multiplier", self.DEFAULT_DURABILITY_MULTIPLIER)
         if self.durability_multiplier < 0:
-            self.logger.warning(f"Invalid durability multiplier, using default: {self.DEFAULT_DURABILITY_MULTIPLIER}")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="durability multiplier", default=self.DEFAULT_DURABILITY_MULTIPLIER))
             self.durability_multiplier = self.DEFAULT_DURABILITY_MULTIPLIER
         self.respect_unbreaking = config.get("tool-durability", {}).get("respect-unbreaking", True)
         self.break_on_exceed = config.get("tool-durability", {}).get("break-on-exceed", True)
@@ -396,10 +396,10 @@ class VeinMinerPlugin(Plugin):
         self.xp_bonus_multiplier = config.get("experience", {}).get("multiplier", 0.05)
         
         if self.xp_bonus_per_blocks < 1:
-            self.logger.warning(f"Invalid bonus-per-blocks value, using default: 10")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="bonus-per-blocks", default="10"))
             self.xp_bonus_per_blocks = 10
         if self.xp_bonus_multiplier < 0:
-            self.logger.warning("Invalid experience multiplier value, using default: 0.05")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="experience multiplier", default="0.05"))
             self.xp_bonus_multiplier = 0.05
         
         # Load statistics settings
@@ -408,7 +408,7 @@ class VeinMinerPlugin(Plugin):
         self.track_per_block_type = stats_config.get("track-per-block-type", True)
         self.broadcast_milestones = stats_config.get("broadcast-milestones", True)
         if self.auto_save_interval < 0:
-            self.logger.warning("Invalid auto-save-interval value, using default: 300")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="auto-save-interval", default="300"))
             self.auto_save_interval = 300
             
         # Load logging settings
@@ -425,14 +425,14 @@ class VeinMinerPlugin(Plugin):
         # Load world restrictions
         self.disabled_worlds = config.get("disabled-worlds", [])
         if not isinstance(self.disabled_worlds, list):
-            self.logger.warning("Invalid disabled-worlds config, using empty list")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="disabled-worlds", default="empty list"))
             self.disabled_worlds = []
         
         # Load activation settings
         activation_config = config.get("activation", {})
         self.activation_mode = activation_config.get("mode", "sneak").lower()
         if self.activation_mode not in ["sneak", "stand", "always"]:
-            self.logger.warning(f"Invalid activation mode '{self.activation_mode}', using 'sneak'")
+            self.logger.warning(self.get_message("log-invalid-config", key="activation mode", value=self.activation_mode, default="sneak"))
             self.activation_mode = "sneak"
         self.per_block_permissions = activation_config.get("per-block-permissions", False)
         self.require_correct_tool = activation_config.get("require-correct-tool", True)
@@ -444,7 +444,7 @@ class VeinMinerPlugin(Plugin):
         pattern_config = config.get("mining-pattern", {})
         self.mining_pattern = str(pattern_config.get("pattern", "adjacent")).lower()
         if self.mining_pattern not in ["adjacent", "cube", "sphere", "vertical", "horizontal"]:
-            self.logger.warning(f"Invalid mining pattern '{self.mining_pattern}', using 'adjacent'")
+            self.logger.warning(self.get_message("log-invalid-config", key="mining pattern", value=self.mining_pattern, default="adjacent"))
             self.mining_pattern = "adjacent"
 
         self.pattern_radius = pattern_config.get("radius", 1)
@@ -455,7 +455,7 @@ class VeinMinerPlugin(Plugin):
         if self.pattern_radius < 1:
             self.pattern_radius = 1
         if self.pattern_radius > 6:
-            self.logger.warning("Pattern radius too high, clamping to 6 for safety")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="pattern radius", default="clamped to 6"))
             self.pattern_radius = 6
         if self.vertical_range < 1:
             self.vertical_range = 1
@@ -471,7 +471,7 @@ class VeinMinerPlugin(Plugin):
         self.chain_mining_enabled = bool(chain_config.get("enabled", False))
         self.chain_activation_mode = str(chain_config.get("mode", "stand")).lower()
         if self.chain_activation_mode not in ["sneak", "stand", "always"]:
-            self.logger.warning(f"Invalid chain mining mode '{self.chain_activation_mode}', using 'stand'")
+            self.logger.warning(self.get_message("log-invalid-config", key="chain mining mode", value=self.chain_activation_mode, default="stand"))
             self.chain_activation_mode = "stand"
 
         self.chain_require_correct_tool = bool(chain_config.get("require-correct-tool", True))
@@ -510,13 +510,13 @@ class VeinMinerPlugin(Plugin):
             self.chain_max_blocks = 1
 
         if self.chain_width_radius > 8:
-            self.logger.warning("chain-mining width-radius too high, clamping to 8 for safety")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="chain-mining width-radius", default="clamped to 8"))
             self.chain_width_radius = 8
         if self.chain_height_radius > 8:
-            self.logger.warning("chain-mining height-radius too high, clamping to 8 for safety")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="chain-mining height-radius", default="clamped to 8"))
             self.chain_height_radius = 8
         if self.chain_depth > 16:
-            self.logger.warning("chain-mining depth too high, clamping to 16 for safety")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="chain-mining depth", default="clamped to 16"))
             self.chain_depth = 16
         if self.chain_max_blocks > self.UNLIMITED_MAX_BLOCKS:
             self.logger.warning(
@@ -543,7 +543,7 @@ class VeinMinerPlugin(Plugin):
             if self.max_veins_per_day < 0:
                 raise ValueError()
         except (TypeError, ValueError):
-            self.logger.warning("Invalid max-veins-per-day value, using default: 1000")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="max-veins-per-day", default="1000"))
             self.max_veins_per_day = 1000
 
         try:
@@ -551,7 +551,7 @@ class VeinMinerPlugin(Plugin):
             if self.max_blocks_per_day < 0:
                 raise ValueError()
         except (TypeError, ValueError):
-            self.logger.warning("Invalid max-blocks-per-day value, using default: 10000")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="max-blocks-per-day", default="10000"))
             self.max_blocks_per_day = 10000
 
         try:
@@ -559,7 +559,7 @@ class VeinMinerPlugin(Plugin):
             if self.max_veins_per_minute < 0:
                 raise ValueError()
         except (TypeError, ValueError):
-            self.logger.warning("Invalid max-veins-per-minute value, using default: 60")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="max-veins-per-minute", default="60"))
             self.max_veins_per_minute = 60
 
         try:
@@ -567,7 +567,7 @@ class VeinMinerPlugin(Plugin):
             if self.temporary_block_duration < 1:
                 raise ValueError()
         except (TypeError, ValueError):
-            self.logger.warning("Invalid temporary-block-duration value, using default: 5")
+            self.logger.warning(self.get_message("log-invalid-config-no-value", key="temporary-block-duration", default="5"))
             self.temporary_block_duration = 5
         
         # Load effects
@@ -631,14 +631,14 @@ class VeinMinerPlugin(Plugin):
                     self.configured_blocks[block_name.upper()] = enabled
                     
         if self.logging_enabled and self.log_config_loading:
-            self.logger.info(ColorFormat.GREEN + f"[Config] Auto-pickup: {'enabled' if self.auto_pickup_enabled else 'disabled'}")
-            self.logger.info(ColorFormat.GREEN + f"[Config] Auto-smelt: {'enabled' if self.auto_smelt_enabled else 'disabled'}")
-            self.logger.info(ColorFormat.GREEN + f"[Config] Full inventory action: {self.full_inventory_action}")
-            self.logger.info(ColorFormat.GREEN + "[Config] Console logging: enabled")
-            self.logger.info(ColorFormat.GREEN + f"[Config] Disabled worlds: {len(self.disabled_worlds)}")
-            self.logger.info(ColorFormat.GREEN + f"[Config] Effects: {'enabled' if (self.particles_enabled or self.sounds_enabled) else 'disabled'}")
-            self.logger.info(ColorFormat.GREEN + f"[Config] Durability multiplier: {self.durability_multiplier}x")
-            self.logger.info(ColorFormat.GREEN + f"[Config] Mining pattern: {self.mining_pattern}")
+            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-auto-pickup", status="enabled" if self.auto_pickup_enabled else "disabled"))
+            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-auto-smelt", status="enabled" if self.auto_smelt_enabled else "disabled"))
+            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-inventory-action", action=self.full_inventory_action))
+            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-logging"))
+            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-disabled-worlds", count=len(self.disabled_worlds)))
+            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-effects", status="enabled" if (self.particles_enabled or self.sounds_enabled) else "disabled"))
+            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-durability-multi", multi=self.durability_multiplier))
+            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-pattern", pattern=self.mining_pattern))
             if self.chain_mining_enabled:
                 self.logger.info(
                     ColorFormat.GREEN
@@ -676,7 +676,7 @@ class VeinMinerPlugin(Plugin):
         self.stats_tracker = StatisticsTracker(self)
         
         if self.logging_enabled:
-            self.logger.info(ColorFormat.GREEN + "Configuration reloaded and caches cleared")
+            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-reloaded"))
     
     def is_player_blocked(self, player_id: str) -> bool:
         """Check if player is temporarily blocked for abuse"""
@@ -717,7 +717,7 @@ class VeinMinerPlugin(Plugin):
         # Check limit
         if len(self.minute_vein_count[player_id]) >= self.max_veins_per_minute:
             if self.log_suspicious_activity:
-                self.logger.warning(f"[Anti-Abuse] {player_id} exceeded rate limit ({self.max_veins_per_minute}/min)")
+                self.logger.warning(self.get_message("log-anti-abuse-rate-limit", player=player_id, limit=self.max_veins_per_minute))
             return False
         
         return True
@@ -891,7 +891,7 @@ class VeinMinerPlugin(Plugin):
                     self.vein_blocks.add(block_id)
                         
         if self.logging_enabled and self.log_config_loading:
-            self.logger.info(ColorFormat.GREEN + f"[Config] Loaded {len(self.vein_blocks)} vein-mineable block types")
+            self.logger.info(ColorFormat.GREEN + self.get_message("log-blocks-loaded", count=len(self.vein_blocks)))
     
     @event_handler
     def on_player_join(self, event: PlayerJoinEvent):
@@ -1041,9 +1041,9 @@ class VeinMinerPlugin(Plugin):
                 
                 # Sanity check: Prevent absurdly large veins
                 if actual_size > self.max_blocks * 2:
-                    self.logger.warning(f"[Security] Abnormally large vein detected ({actual_size} blocks) for {player.name}")
+                    self.logger.warning(self.get_message("log-vein-abnormal-size", size=actual_size))
                     if self.log_suspicious_activity:
-                        self.logger.warning(f"[Anti-Abuse] Suspicious vein size: {actual_size} blocks at {block.x}, {block.y}, {block.z}")
+                        self.logger.warning(self.get_message("log-anti-abuse-suspicious", size=actual_size, x=block.x, y=block.y, z=block.z))
                     return
                 
                 # Security: Check daily limits
@@ -1063,7 +1063,7 @@ class VeinMinerPlugin(Plugin):
                     
                     # Log vein mining activation
                     if self.logging_enabled and self.log_vein_mining:
-                        self.logger.info(ColorFormat.YELLOW + f"[VeinMine] Player: {player.name} | Block: {block_id} | Vein size: {actual_size}")
+                        self.logger.info(ColorFormat.YELLOW + self.get_message("log-vein-mined", player=player.name, block=block_id, size=actual_size))
                     
                     # Process the vein mining
                     process_start = time.time() if self.performance_logging else 0
@@ -1093,7 +1093,7 @@ class VeinMinerPlugin(Plugin):
                 self.last_vein_mine[player_id] = int(time.time() * 1000)
                 
         except Exception as e:
-            self.logger.error(f"Error during vein mining: {str(e)}")
+            self.logger.error(self.get_message("log-vein-error", error=str(e)))
             import traceback
             traceback.print_exc()
             
@@ -1196,7 +1196,7 @@ class VeinMinerPlugin(Plugin):
             self.last_vein_mine[player_id] = int(time.time() * 1000)
 
         except Exception as e:
-            self.logger.error(f"Error during chain mining: {str(e)}")
+            self.logger.error(self.get_message("log-chain-error", error=str(e)))
             import traceback
             traceback.print_exc()
         finally:
@@ -1246,7 +1246,7 @@ class VeinMinerPlugin(Plugin):
                                 sound_throttle += 1
                     except Exception as e:
                         if self.debug_logging:
-                            self.logger.error(f"Error breaking individual block: {str(e)}")
+                            self.logger.error(self.get_message("log-block-break-error", error=str(e)))
                         continue
             
             # Give all collected items at once (if auto-pickup is enabled)
@@ -1256,10 +1256,10 @@ class VeinMinerPlugin(Plugin):
                     self.send_inventory_full_message(player, overflow_count)
             
             if self.debug_logging and successful_breaks < len(vein_list):
-                self.logger.warning(f"Only {successful_breaks}/{len(vein_list)} blocks broken successfully")
+                self.logger.warning(self.get_message("log-block-break-partial", success=successful_breaks, total=len(vein_list)))
         except Exception as e:
             if self.debug_logging:
-                self.logger.error(f"Error in vein processing: {str(e)}")
+                self.logger.error(self.get_message("log-process-error", error=str(e)))
         
         if self.performance_logging:
             elapsed = (time.time() - start_time) * 1000
@@ -1548,7 +1548,7 @@ class VeinMinerPlugin(Plugin):
             start_x, start_y, start_z = start_block.x, start_block.y, start_block.z
         except Exception as e:
             if self.debug_logging:
-                self.logger.error(f"[Chain] Invalid start block: {str(e)}")
+                self.logger.error(self.get_message("log-chain-start-invalid", error=str(e)))
             return set()
 
         depth_axis, depth_sign = self.get_chain_depth_axis(player)
@@ -1871,7 +1871,7 @@ class VeinMinerPlugin(Plugin):
                 player.give_exp(xp_to_give)
             except Exception as e:
                 if self.debug_logging:
-                    self.logger.warning(f"Failed to grant XP: {str(e)}")
+                    self.logger.warning(self.get_message("log-xp-grant-error", error=str(e)))
                 xp_to_give = 0
         
         return xp_to_give
@@ -1937,7 +1937,7 @@ class VeinMinerPlugin(Plugin):
                 except Exception:
                     player.inventory.remove(tool)
                 if self.logging_enabled and self.log_vein_mining:
-                    self.logger.info(f"[VeinMine] {player.name}'s tool broke after mining {successful_breaks} blocks")
+                    self.logger.info(self.get_message("log-tool-broke", player=player.name, count=successful_breaks))
                 return
             new_damage = max_durability - 1
         
@@ -1947,7 +1947,7 @@ class VeinMinerPlugin(Plugin):
             player.inventory.item_in_main_hand = tool
         except Exception as e:
             if self.logging_enabled:
-                self.logger.warning(f"Failed to apply tool durability: {str(e)}")
+                self.logger.warning(self.get_message("log-durability-error", error=str(e)))
     
     def get_block_break_sound(self, block_id: str) -> str:
         """Get the specific breaking sound for a block."""
@@ -1987,7 +1987,7 @@ class VeinMinerPlugin(Plugin):
             player.play_sound(location, sound_name, self.sound_volume, self.sound_pitch)
         except Exception:
             if self.debug_logging:
-                self.logger.warning(f"[Effects] Failed to play sound '{sound_name}'")
+                self.logger.warning(self.get_message("log-sound-error", sound=sound_name))
     
     def play_particle_effect(self, player, location) -> None:
         """Spawn configured particle effects with simple density control."""
@@ -2003,7 +2003,7 @@ class VeinMinerPlugin(Plugin):
                 player.spawn_particle(self.particle_type, px, py, pz)
             except Exception:
                 if self.debug_logging:
-                    self.logger.warning(f"[Effects] Failed to spawn particle '{self.particle_type}'")
+                    self.logger.warning(self.get_message("log-particle-error", particle=self.particle_type))
                 break
     
     def get_ore_drop(self, block_type: str) -> str:
@@ -2120,7 +2120,7 @@ class VeinMinerPlugin(Plugin):
             start_x, start_y, start_z = start_block.x, start_block.y, start_block.z
         except Exception as e:
             if self.debug_logging:
-                self.logger.error(f"[Security] Invalid start block: {str(e)}")
+                self.logger.error(self.get_message("log-security-start-invalid", error=str(e)))
             return set()
         
         vein = set()
@@ -2143,7 +2143,7 @@ class VeinMinerPlugin(Plugin):
                 iterations += 1
                 if iterations > max_iterations:
                     if self.log_suspicious_activity:
-                        self.logger.warning(f"[Security] BFS iteration limit reached (possible exploit attempt)")
+                        self.logger.warning(self.get_message("log-security-bfs-limit"))
                     break
                 
                 cx, cy, cz = queue.popleft()
@@ -2192,7 +2192,7 @@ class VeinMinerPlugin(Plugin):
                             pass  # Skip invalid positions
         except Exception as e:
             if self.debug_logging:
-                self.logger.error(f"Error in find_vein: {str(e)}")
+                self.logger.error(self.get_message("log-find-vein-error", error=str(e)))
             
         return vein
         
@@ -2206,7 +2206,7 @@ class VeinMinerPlugin(Plugin):
             
         if self.logging_enabled and self.log_vein_mining:
             action = "dropped" if self.full_inventory_action == "drop" else "deleted"
-            self.logger.info(ColorFormat.YELLOW + f"[VeinMine] Player {player.name} had full inventory: {count} items {action}")
+            self.logger.info(ColorFormat.YELLOW + self.get_message("log-full-inv-drop", player=player.name, count=count, action=action))
             
     def check_for_updates(self) -> None:
         """Check for plugin updates from GitHub"""
@@ -2228,9 +2228,9 @@ class VeinMinerPlugin(Plugin):
                     if self.is_newer_version(current_version, latest_version):
                         def notify():
                             self.logger.warning("=" * 43)
-                            self.logger.warning("A new update for VeinMiner is available!")
-                            self.logger.warning(f"Current: {ColorFormat.RED}{current_version}{ColorFormat.YELLOW} | Latest: {ColorFormat.GREEN}{latest_version}")
-                            self.logger.warning(f"Download: {ColorFormat.AQUA}https://github.com/{self.github_repo}/releases")
+                            self.logger.warning(self.get_message("log-update-available"))
+                            self.logger.warning(self.get_message("log-update-versions", current=f"{ColorFormat.RED}{current_version}{ColorFormat.YELLOW}", latest=f"{ColorFormat.GREEN}{latest_version}"))
+                            self.logger.warning(self.get_message("log-update-download", repo=self.github_repo))
                             self.logger.warning("=" * 43)
                             
                             # Notify online ops
@@ -2244,12 +2244,12 @@ class VeinMinerPlugin(Plugin):
                     else:
                         if self.logging_enabled:
                             def log_info():
-                                self.logger.info(ColorFormat.GREEN + "[Update] You are running the latest version!")
+                                self.logger.info(ColorFormat.GREEN + self.get_message("log-update-latest"))
                             self.server.scheduler.run_task(self, log_info)
                             
             except Exception as e:
                 if self.logging_enabled:
-                    self.logger.warning(f"Failed to check for updates: {str(e)}")
+                    self.logger.warning(self.get_message("log-update-error", error=str(e)))
                     
         # Run task with delay to not block plugin enable
         self.server.scheduler.run_task(self, check_update_task, delay=100)
