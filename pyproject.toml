@@ -23,3 +23,4 @@ packages = ["src/endstone_vein_miner"]
 
 [tool.hatchling.build.targets.wheel.force-include]
 "src/endstone_vein_miner/config.toml" = "endstone_vein_miner/config.toml"
+"src/endstone_vein_miner/locales" = "endstone_vein_miner/locales"

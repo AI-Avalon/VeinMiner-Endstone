@@ -754,11 +754,30 @@ class VeinMinerPlugin(Plugin):
     
     def load_locales(self) -> None:
         """Load localization files with English fallback"""
+        import os
+        from pathlib import Path
+        import json
+        
         plugin_dir = Path(self.data_folder) if hasattr(self, "data_folder") else Path(os.getcwd()) / "src" / "endstone_vein_miner"
         locales_dir = plugin_dir / "locales"
         
         if not locales_dir.exists():
             locales_dir.mkdir(parents=True, exist_ok=True)
+            
+        # Try to extract default locales from package
+        try:
+            from importlib.resources import files
+            import shutil
+            pkg_locales = files(self.__class__.__module__).joinpath("locales")
+            if pkg_locales.is_dir():
+                for item in pkg_locales.iterdir():
+                    if item.is_file() and item.name.endswith(".json"):
+                        dest = locales_dir / item.name
+                        if not dest.exists():
+                            with item.open("rb") as src_file, dest.open("wb") as dst_file:
+                                shutil.copyfileobj(src_file, dst_file)
+        except Exception as e:
+            self.logger.warning(f"Could not extract default locales: {e}")
             
         en_file = locales_dir / "en_US.json"
         if en_file.exists():
@@ -779,13 +798,19 @@ class VeinMinerPlugin(Plugin):
             self.logger.warning(f"Locale file {self.language}.json not found. Using fallback.")
             self.messages = self.fallback_messages.copy()
             
-    def get_message(self, key: str, default: str = "") -> str:
-        """Get a localized message with fallback"""
+    def get_message(self, key: str, default: str = "", **kwargs) -> str:
+        """Get a localized message with fallback and format it"""
+        msg = default
         if key in self.messages:
-            return self.messages[key]
-        if key in self.fallback_messages:
-            return self.fallback_messages[key]
-        return default
+            msg = self.messages[key]
+        elif key in self.fallback_messages:
+            msg = self.fallback_messages[key]
+        if kwargs:
+            try:
+                msg = msg.format(**kwargs)
+            except Exception:
+                pass
+        return msg
 
     def send_message(self, player, message_key: str, **kwargs) -> None:
         """Send a formatted message to player"""
