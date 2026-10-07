@@ -12,6 +12,9 @@ from collections import deque
 import math
 import time
 import random
+import os
+import json
+from pathlib import Path
 
 
 class VeinMinerPlugin(Plugin):
@@ -148,8 +151,10 @@ class VeinMinerPlugin(Plugin):
         self.log_cooldown_violations = False
         self.log_errors_to_file = True
         
-        # Messages
+        # Messages and Locales
+        self.language = "ja_JP"
         self.messages: Dict[str, str] = {}
+        self.fallback_messages: Dict[str, str] = {}
         
         # Features
         self.disabled_worlds: List[str] = []
@@ -604,22 +609,12 @@ class VeinMinerPlugin(Plugin):
         self.update_checker_enabled = update_config.get("enabled", True)
         self.github_repo = update_config.get("repository", "EuphoriaDevelopmentOrg/VeinMiner-Endstone")
         
-        # Load messages
-        messages = config.get("messages", {})
-        self.messages = {
-            "reload-success": messages.get("reload-success", "&aConfiguration reloaded successfully!"),
-            "vein-too-large": messages.get("vein-too-large", "&cVein size limited to {max} blocks!"),
-            "cooldown-active": messages.get("cooldown-active", "&cPlease wait before vein mining again!"),
-            "wrong-tool": messages.get("wrong-tool", "&cYou need the correct tool to vein mine this block!"),
-            "no-permission": messages.get("no-permission", "&cYou don't have permission to vein mine this block type!"),
-            "limit-reached": messages.get("limit-reached", "&cYou've reached your daily vein mining limit!"),
-            "milestone-reached": messages.get("milestone-reached", "&6&l{player} &ehas mined &6{count} &eblocks with VeinMiner!"),
-            "toggle-enabled": messages.get("toggle-enabled", "&aVein Mining enabled!"),
-            "toggle-disabled": messages.get("toggle-disabled", "&cVein Mining disabled!"),
-            "chain-toggle-enabled": messages.get("chain-toggle-enabled", "&aChain Mining enabled!"),
-            "chain-toggle-disabled": messages.get("chain-toggle-disabled", "&cChain Mining disabled!"),
-        }
-        self.inventory_full_message = messages.get("inventory-full", "&eInventory full! {count} items were {action}.")
+        # Load language setting
+        self.language = config.get("language", "ja_JP")
+        
+        # Load messages from locales
+        self.load_locales()
+        self.inventory_full_message = self.get_message("inventory-full", "&eInventory full! {count} items were {action}.")
         
         # Load block category settings
         enabled_blocks = config.get("enabled-blocks", {})
@@ -757,14 +752,51 @@ class VeinMinerPlugin(Plugin):
             self.daily_vein_count[player_id] = self.daily_vein_count.get(player_id, 0) + 1
             self.daily_block_count[player_id] = self.daily_block_count.get(player_id, 0) + block_count
     
+    def load_locales(self) -> None:
+        """Load localization files with English fallback"""
+        plugin_dir = Path(self.data_folder) if hasattr(self, "data_folder") else Path(os.getcwd()) / "src" / "endstone_vein_miner"
+        locales_dir = plugin_dir / "locales"
+        
+        if not locales_dir.exists():
+            locales_dir.mkdir(parents=True, exist_ok=True)
+            
+        en_file = locales_dir / "en_US.json"
+        if en_file.exists():
+            try:
+                with open(en_file, "r", encoding="utf-8") as f:
+                    self.fallback_messages = json.load(f)
+            except Exception as e:
+                self.logger.error(f"Failed to load fallback locale en_US.json: {e}")
+                
+        lang_file = locales_dir / f"{self.language}.json"
+        if lang_file.exists():
+            try:
+                with open(lang_file, "r", encoding="utf-8") as f:
+                    self.messages = json.load(f)
+            except Exception as e:
+                self.logger.error(f"Failed to load locale {self.language}.json: {e}")
+        else:
+            self.logger.warning(f"Locale file {self.language}.json not found. Using fallback.")
+            self.messages = self.fallback_messages.copy()
+            
+    def get_message(self, key: str, default: str = "") -> str:
+        """Get a localized message with fallback"""
+        if key in self.messages:
+            return self.messages[key]
+        if key in self.fallback_messages:
+            return self.fallback_messages[key]
+        return default
+
     def send_message(self, player, message_key: str, **kwargs) -> None:
         """Send a formatted message to player"""
-        if message_key in self.messages:
-            message = self.messages[message_key]
-            for key, value in kwargs.items():
-                message = message.replace(f"{{{key}}}", str(value))
-            message = message.replace("&", "§")
-            player.send_message(message)
+        message = self.get_message(message_key)
+        if not message:
+            return
+            
+        for key, value in kwargs.items():
+            message = message.replace(f"{{{key}}}", str(value))
+        message = message.replace("&", "§")
+        player.send_message(message)
         
     def load_vein_blocks(self) -> None:
         """Load all vein-mineable block types into cache"""
@@ -1069,7 +1101,7 @@ class VeinMinerPlugin(Plugin):
             current_time = int(time.time() * 1000)
             last_error = self.last_error_message.get(player_id, 0)
             if current_time - last_error > 5000:
-                player.send_message(ColorFormat.RED + "An error occurred during vein mining.")
+                self.send_message(player, "error-occurred", error="Check console")
                 self.last_error_message[player_id] = current_time
         finally:
             # Always remove processing flag
@@ -1189,9 +1221,14 @@ class VeinMinerPlugin(Plugin):
         # Track items to give for auto-pickup
         items_to_give: Dict[str, int] = {}  # {item_type: count}
         
+        # Audio throttle to prevent clipping
+        sound_throttle = 0
+        
         try:
             # Process blocks in batches for better performance
             vein_list = list(vein)
+            first_block_type = vein_list[0].type if vein_list else "minecraft:stone"
+            specific_sound = self.get_block_break_sound(first_block_type)
             
             for i in range(0, len(vein_list), self.batch_size):
                 batch = vein_list[i:i + self.batch_size]
@@ -1204,8 +1241,9 @@ class VeinMinerPlugin(Plugin):
                             
                             if self.particles_enabled and self.particle_per_block:
                                 self.play_particle_effect(player, vein_block.location)
-                            if self.sounds_enabled and self.per_block_sound:
-                                self.play_sound_effect(player, vein_block.location, per_block=True)
+                            if self.sounds_enabled and self.per_block_sound and sound_throttle < 5:
+                                self.play_specific_sound(player, vein_block.location, specific_sound)
+                                sound_throttle += 1
                     except Exception as e:
                         if self.debug_logging:
                             self.logger.error(f"Error breaking individual block: {str(e)}")
@@ -1234,7 +1272,14 @@ class VeinMinerPlugin(Plugin):
         
         # Play completion effects
         if self.sounds_enabled:
+            # Play completion sound if enabled
             self.play_sound_effect(player, player.location, per_block=False)
+            # Play specific breaking sound safely to simulate massive break
+            if not self.per_block_sound:
+                self.play_specific_sound(player, player.location, specific_sound, pitch_mod=0.8)
+                if successful_breaks > 5:
+                    self.play_specific_sound(player, player.location, specific_sound, pitch_mod=1.1)
+                
         if self.particles_enabled:
             self.play_particle_effect(player, player.location)
         
@@ -1904,9 +1949,38 @@ class VeinMinerPlugin(Plugin):
             if self.logging_enabled:
                 self.logger.warning(f"Failed to apply tool durability: {str(e)}")
     
+    def get_block_break_sound(self, block_id: str) -> str:
+        """Get the specific breaking sound for a block."""
+        short_id = self.normalize_block_id(block_id)
+        if "leaves" in short_id:
+            return "dig.grass"
+        elif "log" in short_id or "stem" in short_id or "wood" in short_id:
+            return "dig.wood"
+        elif "deepslate" in short_id:
+            return "dig.deepslate"
+        elif "amethyst" in short_id:
+            return "dig.amethyst_block"
+        elif "sand" in short_id or "gravel" in short_id or "dirt" in short_id:
+            return "dig.gravel"
+        elif "glass" in short_id:
+            return "dig.glass"
+        elif "debris" in short_id or "ore" in short_id:
+            return "dig.stone"
+        return "dig.stone"
+
+    def play_specific_sound(self, player, location, sound_name: str, pitch_mod: float = 1.0) -> None:
+        """Play a specific sound effect safely."""
+        try:
+            player.play_sound(location, sound_name, self.sound_volume, self.sound_pitch * pitch_mod)
+        except Exception:
+            pass
+
     def play_sound_effect(self, player, location, per_block: bool) -> None:
-        """Play configured sound effects with safe fallbacks."""
-        sound_name = self.block_sound if per_block else self.completion_sound
+        """Play configured completion sound with safe fallbacks."""
+        if per_block:
+            return # Handled by specific sounds now
+            
+        sound_name = self.completion_sound
         if not sound_name:
             return
         try:
