@@ -129,7 +129,7 @@ class VeinMinerCommand:
                     return True
 
                 if not sender.has_permission("veinminer.chain"):
-                    sender.send_message(ColorFormat.RED + "You don't have permission to use chain mining.")
+                    plugin.send_message(sender, "no-permission-chain")
                     return True
 
                 if not plugin.chain_mining_enabled:
@@ -173,7 +173,7 @@ class VeinMinerCommand:
                     plugin.send_message(sender, "chain-status-header")
                     
                     status = plugin.get_message("chain-status-enabled") if is_enabled else plugin.get_message("chain-status-disabled")
-                    sender.send_message(ColorFormat.YELLOW + "Status: " + status)
+                    sender.send_message(ColorFormat.YELLOW + plugin.get_message("command-status", status=status))
                     plugin.send_message(sender, "chain-status-mode", mode=plugin.chain_activation_mode)
                     sender.send_message(ColorFormat.GOLD + "▬" * 34)
                     return True
@@ -197,7 +197,7 @@ class VeinMinerCommand:
                 plugin.send_message(sender, "status-header")
                 
                 status = plugin.get_message("status-enabled") if is_enabled else plugin.get_message("status-disabled")
-                sender.send_message(ColorFormat.YELLOW + "Status: " + status)
+                sender.send_message(ColorFormat.YELLOW + plugin.get_message("command-status", status=status))
                 plugin.send_message(sender, "status-version", version=plugin.version)
                 
                 if is_enabled:

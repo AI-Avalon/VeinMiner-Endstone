@@ -118,5 +118,7 @@
   "update-notify-download": "ダウンロード: {url}",
   "vein-mining-tip": "一括破壊: {count} ブロック",
   "chain-mining-tip": "チェーン採掘: {count} ブロック",
-  "mining-xp-tip": " (+{xp} XP)"
+  "mining-xp-tip": " (+{xp} XP)",
+  "no-permission-chain": "チェーン採掘を使用する権限がありません。",
+  "command-status": "状態: {status}"
 }

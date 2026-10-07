@@ -1,167 +1,167 @@
-# VeinMiner Configuration for Endstone
-# Mine entire ore veins, trees, and leaves with a single break
+# Endstone用 VeinMiner 設定ファイル
+# 鉱脈、木、葉を一度の破壊で一括破壊します
 
-# Maximum blocks per vein (-1 for unlimited, not recommended)
+# 1回で破壊できる最大ブロック数 (-1で無制限ですが非推奨です)
 max-blocks = 64
 
-# Batch size for processing blocks (higher = faster but more server load)
-# Valid range: 1-100. Recommended: 10 for normal servers, 20 for powerful servers
+# ブロック処理のバッチサイズ (大きくすると速くなりますがサーバー負荷が増えます)
+# 有効範囲: 1-100。推奨: 通常のサーバーは10、高性能なサーバーは20
 batch-size = 10
 
-# Minimum vein size to trigger vein mining (prevents single-block mining)
+# 一括破壊が発動する最小ブロック数 (1ブロックのみの破壊で発動するのを防ぎます)
 min-vein-size = 2
 
-# Cooldown between vein mining operations in milliseconds (prevents spam)
+# 一括破壊のクールダウン時間(ミリ秒) (スパム防止)
 cooldown-ms = 100
 
 [auto-pickup]
 enabled = true
-# What to do when inventory is full: "drop" or "delete"
+# インベントリが満杯の時の動作: \"drop\"(ドロップ) または \"delete\"(消去)
 full-inventory-action = "drop"
 
-# Auto-smelt mined ores into ingots
+# 採掘した鉱石を自動でインゴットに精錬する
 [auto-smelt]
 enabled = false
-# Require fortune enchantment on tool to activate auto-smelt
+# 自動精錬を発動するためにツールに幸運エンチャントを必要とする
 require-fortune = false
-# Only smelt specific ores (empty list = all smeltable ores)
-# Format: ["coal_ore", "iron_ore", "gold_ore", "copper_ore"]
+# 特定の鉱石のみ精錬する (空のリスト = 精錬可能な全鉱石)
+# 形式: [\"coal_ore\", \"iron_ore\", \"gold_ore\", \"copper_ore\"]
 whitelist = []
-# Give smelting experience when auto-smelting
+# 自動精錬時に精錬経験値を与える
 give-xp = true
-# XP multiplier for auto-smelt (0.5 = half normal smelting XP)
+# 自動精錬の経験値倍率 (0.5 = 通常の精錬経験値の半分)
 xp-multiplier = 0.5
 
 [tool-durability]
-# Durability multiplier (1.0 = normal wear, 2.0 = double wear, 0.5 = half wear)
+# 耐久値の減少倍率 (1.0 = 通常, 2.0 = 2倍減少, 0.5 = 半分)
 multiplier = 1.0
-# Apply durability to unbreaking enchantment calculation
+# 耐久力エンチャントの計算を適用する
 respect-unbreaking = true
-# Break tool if durability would exceed maximum
+# 耐久値が限界を超える場合にツールを破壊する
 break-on-exceed = true
 
 [experience]
 enabled = true
-# XP bonus multiplier based on vein size
-# Formula: base_xp * (1 + (vein_size / bonus-per-blocks) * multiplier)
-# Example: 10 block vein with bonus-per-blocks=5 and multiplier=0.1 gives 20% bonus (1.2x XP)
+# 破壊したブロック数に基づく経験値ボーナス倍率
+# 計算式: 基礎経験値 * (1 + (破壊数 / bonus-per-blocks) * multiplier)
+# 例: 10ブロック破壊時 (bonus-per-blocks=5, multiplier=0.1) の場合、20%ボーナス (1.2倍の経験値)
 bonus-enabled = true
-bonus-per-blocks = 10  # Grant bonus for every X blocks in vein
-multiplier = 0.05  # 5% bonus per bonus-per-blocks threshold
+bonus-per-blocks = 10  # 何ブロックごとにボーナスを与えるか
+multiplier = 0.05  # 閾値ごとに5%のボーナス
 
-# World restrictions (disable vein mining in these worlds)
+# ワールド制限 (これらのワールドでは一括破壊を無効化)
 disabled-worlds = ["creative_world", "spawn"]
 
 [activation]
-# Activation mode: "sneak" (hold shift), "stand" (not sneaking), "always" (always active)
+# 発動モード: \"sneak\"(スニーク時), \"stand\"(スニークしていない時), \"always\"(常に)
 mode = "sneak"
-# Require specific permission per block type (veinminer.blocks.coal_ore, etc.)
+# ブロック種類ごとに特定の権限を要求する (veinminer.blocks.coal_ore など)
 per-block-permissions = false
-# Only work with proper tools (pickaxe for ores, axe for logs, etc.)
+# 適切なツールを使用した場合のみ発動する (鉱石にはツルハシ、木には斧など)
 require-correct-tool = true
-# Maximum distance from player to vein blocks
+# プレイヤーから破壊対象ブロックまでの最大距離
 max-reach-distance = 100
 
-# Mining pattern/shape for vein detection
+# 一括破壊の検知パターン・形状
 [mining-pattern]
-# Pattern type:
-#   "adjacent" - Only touching blocks (original vein mining behavior)
-#   "cube" - 3D cube around each block
-#   "sphere" - Spherical radius around each block
-#   "vertical" - Vertical column (useful for tree trunks)
-#   "horizontal" - Horizontal plane (useful for ore layers)
+# パターンタイプ:
+#   \"adjacent\" - 隣接ブロックのみ (従来の一括破壊の動作)
+#   \"cube\" - 各ブロックの周囲の3Dキューブ
+#   \"sphere\" - 各ブロックの周囲の球状範囲
+#   \"vertical\" - 垂直方向の列 (木の幹に便利)
+#   \"horizontal\" - 水平面 (鉱石の層に便利)
 pattern = "adjacent"
-# Radius for sphere/cube patterns (blocks, ignored for adjacent)
+# 球状/キューブパターンの半径 (ブロック数、adjacentでは無視されます)
 radius = 1
-# Include diagonal blocks (for adjacent mode)
-# If false, only includes 6 faces (up/down/north/south/east/west)
-# If true, includes all 26 surrounding blocks
+# 斜めのブロックを含める (adjacentモード用)
+# falseの場合、6面(上下前後左右)のみを含めます
+# trueの場合、周囲26ブロックすべてを含めます
 include-diagonals = true
-# For vertical pattern: max height to search
+# verticalパターンの場合: 検索する最大の高さ
 vertical-range = 4
-# For horizontal pattern: max width to search
+# horizontalパターンの場合: 検索する最大の幅
 horizontal-range = 4
 
-# Independent chain mining (directional cuboid from the mined block) Not recommended for Big Servers!
+# 独立したチェーン採掘 (破壊したブロックから方向性のある直方体) 大規模サーバーには非推奨です！
 [chain-mining]
 enabled = false
 # Activation mode: "sneak" (hold shift), "stand" (not sneaking), "always"
 mode = "stand"
-# Only work with proper tools (pickaxe for ores, axe for logs, etc.)
+# 適切なツールを使用した場合のみ発動する (鉱石にはツルハシ、木には斧など)
 require-correct-tool = true
-# Require specific permission per block type (veinminer.chain.blocks.coal_ore, etc.)
+# ブロック種類ごとに特定のチェーン採掘権限を要求する (veinminer.chain.blocks.coal_ore など)
 per-block-permissions = false
-# Restrict chain mining to configured vein blocks only
+# チェーン採掘を設定された一括破壊対象ブロックのみに制限する
 only-configured-blocks = false
-# Cross-section width radius (1 = 3 blocks wide)
+# 断面の幅の半径 (1 = 幅3ブロック)
 width-radius = 1
-# Cross-section height radius (1 = 3 blocks tall)
+# 断面の高さの半径 (1 = 高さ3ブロック)
 height-radius = 1
-# Depth from the mined block (includes the center layer; 3 = 3 layers deep)
+# 破壊したブロックからの深さ (中心層を含みます; 3 = 深さ3層)
 depth = 3
-# Maximum number of blocks to process in a chain operation
+# チェーン採掘で処理する最大ブロック数
 max-blocks = 256
-# If true, only mine blocks matching the original block type
+# trueの場合、最初に破壊したブロックと同じ種類のブロックのみ採掘する
 same-block-only = false
 
-# Particle customization
+# パーティクルのカスタマイズ
 [effects.particles]
-# Enable particle effects when breaking blocks
+# ブロック破壊時のパーティクルエフェクトを有効にする
 enabled = true
-# Particle type: "explosion", "flame", "smoke", "sparkle", "heart", "critical"
+# パーティクルの種類: \"explosion\", \"flame\", \"smoke\", \"sparkle\", \"heart\", \"critical\"
 type = "explosion"
-# Number of particles per block
+# ブロックごとのパーティクル数
 count = 3
-# Particle spawn radius
+# パーティクルの発生半径
 radius = 0.5
-# Show particles for every block (false = only at completion)
+# すべてのブロックでパーティクルを表示する (false = 完了時のみ)
 per-block = false
 
-# Sound customization
+# サウンドのカスタマイズ
 [effects.sounds]
-# Enable sound effects
+# サウンドエフェクトを有効にする
 enabled = true
-# Sound to play on completion (e.g., "random.levelup", "random.orb", "mob.enderdragon.hit")
+# 完了時に再生するサウンド (例: \"random.levelup\")
 completion-sound = "random.levelup"
-# Volume (0.0 - 1.0)
+# 音量 (0.0 - 1.0)
 volume = 1.0
-# Pitch (0.5 - 2.0, higher = higher pitch)
+# ピッチ (0.5 - 2.0, 高いほど高音)
 pitch = 1.0
-# Play sound per block broken (can be spammy for large veins)
+# 壊れたブロックごとに音を鳴らす (大量破壊時はうるさくなる可能性があります)
 per-block-sound = false
-# Sound to play per block (if per-block-sound is true)
+# ブロックごとに再生するサウンド (per-block-soundがtrueの場合)
 block-sound = "dig.stone"
 
 [limits]
-# Daily/session limits to prevent abuse
+# 悪用を防ぐための1日/セッションごとの制限
 enable-limits = false
 max-veins-per-day = 1000
 max-blocks-per-day = 10000
-reset-time = "00:00"  # Reserved for future use (current reset is fixed 24-hour scheduler)
+reset-time = "00:00"  # 将来のアップデート用 (現在のリセットは24時間固定スケジュールです)
 
-# Anti-abuse settings
+# 悪用防止(Anti-Abuse)設定
 [anti-abuse]
-# Maximum veins per minute (0 = disabled)
+# 1分あたりの最大一括破壊回数 (0 = 無効)
 max-veins-per-minute = 60
-# Block players who exceed limits for X minutes
+# 制限を超えたプレイヤーをX分間ブロックする
 temporary-block-duration = 5
-# Log suspicious activity (excessive vein mining)
+# 疑わしい活動（過度な一括破壊）をログに記録する
 log-suspicious-activity = true
 
 [statistics]
 enabled = true
-storage = "yaml"  # "yaml" or "mysql"
-save-to-file = true  # Persist stats to stats.yml
-auto-save-interval = 300  # Auto-save interval in seconds (0 = save on each stat update)
-track-per-block-type = true  # Reserved for future per-block stats breakdown
+storage = "yaml"  # \"yaml\" または \"mysql\"
+save-to-file = true  # 統計をstats.ymlに保存する
+auto-save-interval = 300  # 自動保存の同隔(秒) (0 = 統計更新ごとに保存)
+track-per-block-type = true  # 将来のブロックごとの統計内訳用
 milestones = { enabled = true, thresholds = [100, 500, 1000, 5000, 10000] }
-# Announce milestones to all players
+# すべてのプレイヤーにマイルストーンをアナウンスする
 broadcast-milestones = true
 
 [statistics.mysql]
-# You can enable MySQL either by:
-#   1) setting statistics.storage = "mysql"
-#   2) setting this enabled flag to true
+# 以下のいずれかの方法でMySQLを有効にできます:
+#   1) statistics.storage = \"mysql\" を設定する
+#   2) この enabled フラグを true にする
 enabled = false
 host = "127.0.0.1"
 port = 3306
@@ -179,11 +179,11 @@ repository = "EuphoriaDevelopmentOrg/VeinMiner-Endstone"
 enabled = true
 log-vein-mining = true
 log-config-loading = true
-debug-logging = false  # Enable verbose debug logs (spams console)
-performance-logging = false  # Log performance metrics (vein search/processing times)
-log-player-toggle = false  # Log when players toggle vein mining on/off
-log-cooldown-violations = false  # Log when players hit cooldown
-log-errors-to-file = true  # Save errors to separate error log file
+debug-logging = false  # 詳細なデバッグログを有効にする (コンソールが大量に流れます)
+performance-logging = false  # パフォーマンス指標（検索/処理時間）をログに記録する
+log-player-toggle = false  # プレイヤーが一括破壊を切り替えた時にログに記録する
+log-cooldown-violations = false  # プレイヤーがクールダウンに引っかかった時にログに記録する
+log-errors-to-file = true  # エラーを個別のエラーログファイルに保存する
 
 [enabled-blocks]
 ores = true
