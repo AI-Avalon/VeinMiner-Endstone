@@ -287,7 +287,7 @@ class VeinMinerPlugin(Plugin):
         
         # Check for updates
         if self.update_checker_enabled:
-            self.check_for_updates()
+            pass # self.check_for_updates()
             
     def on_disable(self) -> None:
         """Called when the plugin is disabled"""
@@ -631,14 +631,14 @@ class VeinMinerPlugin(Plugin):
                     self.configured_blocks[block_name.upper()] = enabled
                     
         if self.logging_enabled and self.log_config_loading:
-            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-auto-pickup", status="enabled" if self.auto_pickup_enabled else "disabled"))
-            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-auto-smelt", status="enabled" if self.auto_smelt_enabled else "disabled"))
-            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-inventory-action", action=self.full_inventory_action))
-            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-logging"))
-            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-disabled-worlds", count=len(self.disabled_worlds)))
-            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-effects", status="enabled" if (self.particles_enabled or self.sounds_enabled) else "disabled"))
-            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-durability-multi", multi=self.durability_multiplier))
-            self.logger.info(ColorFormat.GREEN + self.get_message("log-config-pattern", pattern=self.mining_pattern))
+            self.logger.info(f"§a[設定] 自動ピックアップ: {'有効' if self.auto_pickup_enabled else '無効'}")
+            self.logger.info(f"§a[設定] 自動製錬: {'有効' if self.auto_smelt_enabled else '無効'}")
+            self.logger.info(f"§a[設定] インベントリ満杯時: {'地面にドロップ' if self.full_inventory_action == 'drop' else '消去'}")
+            self.logger.info(f"§a[設定] 採掘パターン: {'隣接ブロック' if self.mining_pattern == 'adjacent' else self.mining_pattern}")
+            self.logger.info(f"§a[設定] エフェクト: {'有効' if (self.particles_enabled or self.sounds_enabled) else '無効'}")
+            self.logger.info(f"§a[設定] コンソールログ: 有効")
+            self.logger.info(f"§a[設定] 無効化されたワールド数: {len(self.disabled_worlds)}")
+            self.logger.info(f"§a[設定] 耐久力消費倍率: {self.durability_multiplier}x")
             if self.chain_mining_enabled:
                 self.logger.info(
                     ColorFormat.GREEN
