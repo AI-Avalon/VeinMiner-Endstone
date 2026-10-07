@@ -1080,9 +1080,9 @@ class VeinMinerPlugin(Plugin):
                             self.stats_tracker.record_vein_mine(player, successful_breaks)
 
                         # Send status tip
-                        tip = ColorFormat.GOLD + "Vein Mining: " + ColorFormat.WHITE + f"{successful_breaks} blocks"
+                        tip = ColorFormat.GOLD + self.get_message("vein-mining-tip", count=successful_breaks)
                         if xp_gained > 0:
-                            tip += ColorFormat.GRAY + f" (+{xp_gained} XP)"
+                            tip += ColorFormat.GRAY + self.get_message("mining-xp-tip", xp=xp_gained)
                         player.send_tip(tip)
                     
                     if self.performance_logging:
@@ -1183,9 +1183,9 @@ class VeinMinerPlugin(Plugin):
                 if self.stats_tracker:
                     self.stats_tracker.record_vein_mine(player, successful_breaks)
 
-                tip = ColorFormat.GOLD + "Chain Mining: " + ColorFormat.WHITE + f"{successful_breaks} blocks"
+                tip = ColorFormat.GOLD + self.get_message("chain-mining-tip", count=successful_breaks)
                 if xp_gained > 0:
-                    tip += ColorFormat.GRAY + f" (+{xp_gained} XP)"
+                    tip += ColorFormat.GRAY + self.get_message("mining-xp-tip", xp=xp_gained)
                 player.send_tip(tip)
 
             if self.performance_logging:
@@ -2236,9 +2236,9 @@ class VeinMinerPlugin(Plugin):
                             # Notify online ops
                             for player in self.server.online_players:
                                 if player.is_op:
-                                    player.send_message(ColorFormat.YELLOW + "[VeinMiner] " + ColorFormat.GOLD + "A new update is available!")
-                                    player.send_message(ColorFormat.YELLOW + f"Current: {ColorFormat.RED}{current_version}{ColorFormat.YELLOW} | Latest: {ColorFormat.GREEN}{latest_version}")
-                                    player.send_message(ColorFormat.GRAY + "Download: " + ColorFormat.AQUA + f"https://github.com/{self.github_repo}/releases")
+                                    player.send_message(ColorFormat.YELLOW + self.get_message("update-notify-title"))
+                                    player.send_message(ColorFormat.YELLOW + self.get_message("update-notify-version", current=f"{ColorFormat.RED}{current_version}{ColorFormat.YELLOW}", latest=f"{ColorFormat.GREEN}{latest_version}"))
+                                    player.send_message(ColorFormat.GRAY + self.get_message("update-notify-download", url=f"https://github.com/{self.github_repo}/releases"))
                                     
                         self.server.scheduler.run_task(self, notify)
                     else:

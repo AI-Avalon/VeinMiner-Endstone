@@ -112,5 +112,11 @@
   "log-stats-loaded": "Loaded statistics for {count} players.",
   "log-stats-yaml-load-error": "Error loading YAML statistics: {error}",
   "log-stats-mysql-load-error": "Error loading MySQL statistics: {error}",
-  "log-stats-unknown-storage": "Unknown statistics storage '{storage}', falling back to yaml."
+  "log-stats-unknown-storage": "Unknown statistics storage '{storage}', falling back to yaml.",
+  "update-notify-title": "[VeinMiner] A new update is available!",
+  "update-notify-version": "Current: {current} | Latest: {latest}",
+  "update-notify-download": "Download: {url}",
+  "vein-mining-tip": "Vein Mining: {count} blocks",
+  "chain-mining-tip": "Chain Mining: {count} blocks",
+  "mining-xp-tip": " (+{xp} XP)"
 }

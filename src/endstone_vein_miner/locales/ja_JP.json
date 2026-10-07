@@ -112,5 +112,11 @@
   "log-stats-loaded": "{count} 人のプレイヤーの統計情報を読み込みました。",
   "log-stats-yaml-load-error": "YAML統計情報の読み込み中にエラーが発生しました: {error}",
   "log-stats-mysql-load-error": "MySQL統計情報の読み込み中にエラーが発生しました: {error}",
-  "log-stats-unknown-storage": "不明な統計情報ストレージ '{storage}' です。yaml にフォールバックします。"
+  "log-stats-unknown-storage": "不明な統計情報ストレージ '{storage}' です。yaml にフォールバックします。",
+  "update-notify-title": "[VeinMiner] 新しいアップデートが利用可能です！",
+  "update-notify-version": "現在のバージョン: {current} | 最新バージョン: {latest}",
+  "update-notify-download": "ダウンロード: {url}",
+  "vein-mining-tip": "一括破壊: {count} ブロック",
+  "chain-mining-tip": "チェーン採掘: {count} ブロック",
+  "mining-xp-tip": " (+{xp} XP)"
 }
