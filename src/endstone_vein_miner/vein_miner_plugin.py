@@ -1997,8 +1997,8 @@ class VeinMinerPlugin(Plugin):
         """Play a specific sound effect safely."""
         try:
             player.play_sound(location, sound_name, self.sound_volume, self.sound_pitch * pitch_mod)
-        except Exception:
-            pass
+        except Exception as e:
+            self.logger.error(f"play_specific_sound exception: {e}")
 
     def play_sound_effect(self, player, location, per_block: bool) -> None:
         """Play configured completion sound with safe fallbacks."""
@@ -2010,9 +2010,8 @@ class VeinMinerPlugin(Plugin):
             return
         try:
             player.play_sound(location, sound_name, self.sound_volume, self.sound_pitch)
-        except Exception:
-            if self.debug_logging:
-                self.logger.warning(self.get_message("log-sound-error", sound=sound_name))
+        except Exception as e:
+            self.logger.error(f"play_sound_effect exception: {e}")
     
     def play_particle_effect(self, player, location) -> None:
         """Spawn configured particle effects with simple density control."""
